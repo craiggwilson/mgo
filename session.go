@@ -2172,6 +2172,7 @@ type Pipe struct {
 	pipeline   interface{}
 	allowDisk  bool
 	batchSize  int
+	collation  *Collation
 }
 
 type pipeCmd struct {
@@ -2180,6 +2181,7 @@ type pipeCmd struct {
 	Cursor    *pipeCmdCursor ",omitempty"
 	Explain   bool           ",omitempty"
 	AllowDisk bool           "allowDiskUse,omitempty"
+	Collation *Collation     ",omitempty"
 }
 
 type pipeCmdCursor struct {
@@ -2233,6 +2235,7 @@ func (p *Pipe) Iter() *Iter {
 		Pipeline:  p.pipeline,
 		AllowDisk: p.allowDisk,
 		Cursor:    &pipeCmdCursor{p.batchSize},
+		Collation: p.collation,
 	}
 	err := c.Database.Run(cmd, &result)
 	if e, ok := err.(*QueryError); ok && e.Message == `unrecognized field "cursor` {
@@ -2368,6 +2371,14 @@ func (p *Pipe) AllowDiskUse() *Pipe {
 // The default batch size is defined by the database server.
 func (p *Pipe) Batch(n int) *Pipe {
 	p.batchSize = n
+	return p
+}
+
+// Collation sets the collation to use when comparing and sorting documents.
+//
+// The default collation is defined by the database server.
+func (p *Pipe) Collation(c *Collation) *Pipe {
+	p.collation = c
 	return p
 }
 
